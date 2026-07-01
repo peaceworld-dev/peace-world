@@ -72,8 +72,8 @@ export default function Journal({ onAskAI }: JournalProps) {
   };
 
   return (
-    <div id="journal-panel" className="bg-white border border-neutral-900 rounded-lg p-6 shadow-sm font-mono text-neutral-900 transition-all">
-      <div className="flex items-center justify-between mb-4">
+    <div id="journal-panel" className="bg-white border border-neutral-900 rounded-lg p-6 shadow-sm font-mono text-neutral-900 transition-all flex-1 flex flex-col min-h-[320px]">
+      <div className="flex items-center justify-between mb-4 shrink-0">
         <div>
           <div className="flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-neutral-900" />
@@ -84,7 +84,7 @@ export default function Journal({ onAskAI }: JournalProps) {
         <button
           id="btn-toggle-new-entry"
           onClick={() => setIsOpen(!isOpen)}
-          className="px-3 py-1.5 bg-neutral-900 text-white rounded text-xs hover:bg-neutral-800 transition duration-200 flex items-center gap-1.5"
+          className="px-3 py-1.5 bg-neutral-900 text-white rounded text-xs hover:bg-neutral-800 transition duration-200 flex items-center gap-1.5 shrink-0"
         >
           <PenTool className="w-3.5 h-3.5" />
           <span>{isOpen ? "Fechar" : "Nova Reflexão"}</span>
@@ -92,7 +92,7 @@ export default function Journal({ onAskAI }: JournalProps) {
       </div>
 
       {isOpen && (
-        <form id="form-new-journal" onSubmit={handleSave} className="border border-neutral-900 p-4 rounded-lg mb-6 bg-neutral-50 animate-fadeIn">
+        <form id="form-new-journal" onSubmit={handleSave} className="border border-neutral-900 p-4 rounded-lg mb-6 bg-neutral-50 animate-fadeIn shrink-0">
           <p className="text-xs font-bold uppercase tracking-wider mb-2 text-neutral-700">Como está o seu ser neste momento?</p>
           
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mb-4">
@@ -152,13 +152,13 @@ export default function Journal({ onAskAI }: JournalProps) {
       )}
 
       {notes.length === 0 ? (
-        <div className="text-center py-8 border border-dashed border-neutral-200 rounded-lg bg-neutral-50/50">
+        <div className="flex-1 flex flex-col items-center justify-center text-center py-8 border border-dashed border-neutral-200 rounded-lg bg-neutral-50/50 min-h-[180px]">
           <PenTool className="w-8 h-8 text-neutral-300 mx-auto mb-2" />
           <p className="text-xs text-neutral-500">Seu diário está límpido e em branco.</p>
           <p className="text-[10px] text-neutral-400 mt-1">Coloque em palavras o que você deseja liberar hoje.</p>
         </div>
       ) : (
-        <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+        <div className="flex-1 space-y-3 overflow-y-auto pr-1 min-h-[180px]">
           {notes.map((note) => {
             const moodObj = MOODS.find((m) => m.id === note.mood) || MOODS[0];
             const MoodIcon = moodObj.icon;
