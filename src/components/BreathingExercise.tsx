@@ -128,7 +128,7 @@ export default function BreathingExercise() {
   };
 
   return (
-    <div id="breathing-panel" className="bg-white border border-neutral-900 rounded-lg p-6 shadow-sm font-mono text-neutral-900 transition-all flex flex-col md:flex-row gap-6 items-center">
+    <div id="breathing-panel" className="bg-white border border-neutral-900 rounded-lg p-6 shadow-sm font-mono text-neutral-900 transition-all flex flex-col gap-6 items-center overflow-hidden">
       <div className="flex-1 w-full">
         <div className="flex items-center gap-2 mb-2">
           <Wind className="w-5 h-5 text-neutral-900" />
@@ -201,7 +201,7 @@ export default function BreathingExercise() {
         )}
       </div>
 
-      <div className="w-full md:w-64 h-64 border border-neutral-100 bg-neutral-50 rounded flex flex-col items-center justify-center relative overflow-hidden shrink-0">
+      <div className="w-full max-w-full h-64 border border-neutral-100 bg-neutral-50 rounded flex flex-col items-center justify-center relative overflow-hidden shrink-0 box-border">
         {/* Animated breathing circle */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div 
