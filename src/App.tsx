@@ -87,6 +87,7 @@ export default function App() {
   const [localTime, setLocalTime] = useState("");
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const chatContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Sync Room selection
   useEffect(() => {
@@ -95,9 +96,11 @@ export default function App() {
     fetchQuote(room.id);
   }, [activeRoomId]);
 
-  // Scroll to bottom of chat
+  // Scroll to bottom of chat - FIXED: only scrolls inside the chat box, never the whole page
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   // Refresh clock time
@@ -372,8 +375,8 @@ export default function App() {
               <span className="text-[10px] text-neutral-400">Presença Inteligente</span>
             </div>
 
-            {/* Messages container */}
-            <div className="flex-1 overflow-y-auto space-y-4 pr-1 mb-4 flex flex-col">
+            {/* Messages container - FIXED: added ref here so scroll stays contained */}
+            <div ref={chatContainerRef} className="flex-1 overflow-y-auto space-y-4 pr-1 mb-4 flex flex-col">
               {messages.map((m) => (
                 <div
                   id={`chat-msg-${m.id}`}
