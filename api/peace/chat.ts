@@ -1,5 +1,70 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { ai, generateContentWithFallback } from "../../lib/gemini";
+import { GoogleGenAI } from "@google/genai";
+
+const apiKey = process.env.GEMINI_API_KEY || "";
+
+let ai: GoogleGenAI | null = null;
+if (apiKey && apiKey !== "MY_GEMINI_API_KEY") {
+  ai = new GoogleGenAI({
+    apiKey: apiKey,
+    httpOptions: {
+      headers: {
+        "User-Agent": "aistudio-build",
+      },
+    },
+  });
+}
+
+async function generateContentWithFallback(params: {
+  contents: any;
+  systemInstruction?: string;
+  temperature?: number;
+}) {
+  if (!ai) {
+    throw new Error("Gemini AI is not initialized");
+  }
+
+  const models = [
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-1.5-flash",
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
+  ];
+  let lastError: any = null;
+
+  for (const model of models) {
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const config: any = {};
+        if (params.systemInstruction) {
+          config.systemInstruction = params.systemInstruction;
+        }
+        if (params.temperature !== undefined) {
+          config.temperature = params.temperature;
+        }
+
+        const response = await ai.models.generateContent({
+          model,
+          contents: params.contents,
+          config,
+        });
+
+        if (response && response.text) {
+          return response;
+        }
+      } catch (err: any) {
+        lastError = err;
+        console.log(`[Gemini Fallback] Attempt ${attempt} with model ${model} failed:`, err.message || err);
+        if (attempt < 2) {
+          await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
+        }
+      }
+    }
+  }
+
+  throw lastError || new Error("All model attempts failed");
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
