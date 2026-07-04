@@ -21,6 +21,7 @@ import {
 import AudioPlayer from "./components/AudioPlayer";
 import BreathingExercise from "./components/BreathingExercise";
 import Journal from "./components/Journal";
+import SafetyNotice from "./components/SafetyNotice";
 import { Room, RoomId, ChatMessage } from "./types";
 
 const ROOMS: Room[] = [
@@ -193,6 +194,7 @@ export default function App() {
   };
 
   return (
+    <SafetyNotice>
     <div className="min-h-screen bg-neutral-950 text-white font-mono flex flex-col selection:bg-white selection:text-neutral-950 antialiased">
       {/* Visual background lines / starry dust minimalist feeling */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px] z-0" />
@@ -499,5 +501,6 @@ export default function App() {
         </div>
       </footer>
     </div>
+    </SafetyNotice>
   );
 }
