@@ -15,12 +15,14 @@ import {
   Activity
 } from "lucide-react";
 import { AmbientSound } from "../types";
+import { useLanguage } from "../i18n/LanguageContext";
 
 interface AudioPlayerProps {
   activeSound: AmbientSound;
 }
 
 export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
+  const { t } = useLanguage();
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.5);
   const [selectedSound, setSelectedSound] = useState<AmbientSound>(activeSound);
@@ -33,11 +35,12 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
   const birdsIntervalRef = useRef<any>(null);
   const fireIntervalRef = useRef<any>(null);
 
+  const soundLabels: Record<string, string> = t("audio.sounds");
+
   // Sync with selected room sound
   useEffect(() => {
     setSelectedSound(activeSound);
     if (isPlaying) {
-      // Small timeout to allow state transition and rebuild the synth
       const timer = setTimeout(() => {
         startSound(activeSound);
       }, 50);
@@ -45,14 +48,12 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
     }
   }, [activeSound]);
 
-  // Handle volume changes
   useEffect(() => {
     if (mainGainRef.current) {
       mainGainRef.current.gain.value = volume;
     }
   }, [volume]);
 
-  // Clean up on unmount
   useEffect(() => {
     return () => {
       stopAll();
@@ -95,7 +96,7 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
       b5 = -0.7616 * b5 - white * 0.0168980;
       const pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
       b6 = white * 0.115926;
-      data[i] = pink * 0.11; // normalization
+      data[i] = pink * 0.11;
     }
     return buffer;
   };
@@ -110,7 +111,7 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
       const white = Math.random() * 2 - 1;
       data[i] = (lastOut + (0.02 * white)) / 1.02;
       lastOut = data[i];
-      data[i] *= 3.5; // compensation
+      data[i] *= 3.5;
     }
     return buffer;
   };
@@ -153,7 +154,6 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
 
     try {
       if (soundType === "rain") {
-        // Synthesize rain using pink noise + resonant bandpass filter
         const noiseNode = ctx.createBufferSource();
         noiseNode.buffer = createPinkNoiseBuffer(ctx);
         noiseNode.loop = true;
@@ -169,27 +169,25 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
         soundNodeRef.current = noiseNode;
 
       } else if (soundType === "waves") {
-        // Synthesize waves using brown noise modulated by a very slow LFO
         const noiseNode = ctx.createBufferSource();
         noiseNode.buffer = createBrownNoiseBuffer(ctx);
         noiseNode.loop = true;
 
         const waveGain = ctx.createGain();
-        waveGain.gain.value = 0.1; // base volume
+        waveGain.gain.value = 0.1;
 
-        // Modulate waveGain with an LFO to simulate water movement
         const lfo = ctx.createOscillator();
-        lfo.frequency.value = 0.08; // 12 seconds per wave cycle
+        lfo.frequency.value = 0.08;
         
         const lfoGain = ctx.createGain();
-        lfoGain.gain.value = 0.35; // depth of oscillation
+        lfoGain.gain.value = 0.35;
 
         lfo.connect(lfoGain);
         lfoGain.connect(waveGain.gain);
 
         const filter = ctx.createBiquadFilter();
         filter.type = "lowpass";
-        filter.frequency.value = 450; // soft underwater-like lowpass
+        filter.frequency.value = 450;
 
         noiseNode.connect(filter);
         filter.connect(waveGain);
@@ -202,7 +200,6 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
         soundNodeRef.current = noiseNode;
 
       } else if (soundType === "wind") {
-        // Synthesize wind using pink noise and a shifting lowpass filter modulated by LFO
         const noiseNode = ctx.createBufferSource();
         noiseNode.buffer = createPinkNoiseBuffer(ctx);
         noiseNode.loop = true;
@@ -213,10 +210,10 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
         filter.Q.value = 2.0;
 
         const lfo = ctx.createOscillator();
-        lfo.frequency.value = 0.15; // slow swelling frequency sweeps
+        lfo.frequency.value = 0.15;
         
         const lfoGain = ctx.createGain();
-        lfoGain.gain.value = 200; // range of swept frequency
+        lfoGain.gain.value = 200;
 
         lfo.connect(lfoGain);
         lfoGain.connect(filter.frequency);
@@ -231,8 +228,7 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
         soundNodeRef.current = noiseNode;
 
       } else if (soundType === "night") {
-        // Night/Cosmic bowl synthesizer: harmonic sine wave oscillators with slight detune
-        const voices = [110, 165, 220, 275, 330, 440]; // Deep chords A
+        const voices = [110, 165, 220, 275, 330, 440];
         const nodes: OscillatorNode[] = [];
         
         const ambientGroupGain = ctx.createGain();
@@ -243,10 +239,9 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
           const osc = ctx.createOscillator();
           const oscGain = ctx.createGain();
           
-          osc.frequency.value = freq + (Math.random() * 2 - 1); // detune
+          osc.frequency.value = freq + (Math.random() * 2 - 1);
           osc.type = "sine";
 
-          // Modulate individual voices slowly for organic feel
           const oscLfo = ctx.createOscillator();
           oscLfo.frequency.value = 0.05 + idx * 0.02;
           const oscLfoGain = ctx.createGain();
@@ -267,7 +262,6 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
           nodes.push(oscLfo as any);
         });
 
-        // Add soft crackling campfire (using short filtered clicks)
         const campfireNode = ctx.createBufferSource();
         campfireNode.buffer = createPinkNoiseBuffer(ctx);
         campfireNode.loop = true;
@@ -277,14 +271,13 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
         cpFilter.Q.value = 10;
         
         const cpGain = ctx.createGain();
-        cpGain.gain.value = 0.02; // very subtle
+        cpGain.gain.value = 0.02;
 
         campfireNode.connect(cpFilter);
         cpFilter.connect(cpGain);
         cpGain.connect(mainGain);
         campfireNode.start();
 
-        // Wrap cleanup
         soundNodeRef.current = {
           disconnect: () => {
             nodes.forEach(n => {
@@ -297,7 +290,6 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
         } as any;
 
       } else if (soundType === "forest") {
-        // Synthesize a beautiful calm forest environment
         const noiseNode = ctx.createBufferSource();
         noiseNode.buffer = createPinkNoiseBuffer(ctx);
         noiseNode.loop = true;
@@ -308,7 +300,7 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
         filter.Q.setValueAtTime(1.0, ctx.currentTime);
 
         const windLfo = ctx.createOscillator();
-        windLfo.frequency.setValueAtTime(0.06, ctx.currentTime); // very slow leaves rustling
+        windLfo.frequency.setValueAtTime(0.06, ctx.currentTime);
         const windLfoGain = ctx.createGain();
         windLfoGain.gain.setValueAtTime(180, ctx.currentTime);
 
@@ -325,7 +317,6 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
         windLfo.start();
         noiseNode.start();
 
-        // Sparse birds chirping randomly
         const triggerBird = () => {
           try {
             const now = ctx.currentTime;
@@ -355,9 +346,7 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
               
               timeOffset += duration + 0.05 + Math.random() * 0.08;
             }
-          } catch (e) {
-            // Context suspended/closed
-          }
+          } catch (e) {}
         };
 
         triggerBird();
@@ -378,7 +367,6 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
         } as any;
 
       } else if (soundType === "fire") {
-        // Synthesize a crackling fireplace wood fire
         const roarNode = ctx.createBufferSource();
         roarNode.buffer = createBrownNoiseBuffer(ctx);
         roarNode.loop = true;
@@ -395,7 +383,6 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
         roarGain.connect(mainGain);
         roarNode.start();
 
-        // High frequency crackles
         const crackleNode = ctx.createBufferSource();
         crackleNode.buffer = createPinkNoiseBuffer(ctx);
         crackleNode.loop = true;
@@ -407,7 +394,6 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
         const crackleGain = ctx.createGain();
         crackleGain.gain.setValueAtTime(0.06, ctx.currentTime);
 
-        // Rapid amplitude sputter
         const crackleLfo = ctx.createOscillator();
         crackleLfo.type = "sawtooth";
         crackleLfo.frequency.setValueAtTime(14, ctx.currentTime);
@@ -425,7 +411,6 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
         crackleLfo.start();
         crackleNode.start();
 
-        // Loud periodic wood pops
         const triggerPop = () => {
           try {
             const now = ctx.currentTime;
@@ -475,7 +460,6 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
         } as any;
 
       } else if (soundType === "stream") {
-        // Synthesize water brook/stream
         const flowNode = ctx.createBufferSource();
         flowNode.buffer = createPinkNoiseBuffer(ctx);
         flowNode.loop = true;
@@ -503,7 +487,6 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
         flowLfo.start();
         flowNode.start();
 
-        // Continuous wet gurgling bubbles modulation
         const gurgleOsc = ctx.createOscillator();
         gurgleOsc.type = "sine";
         gurgleOsc.frequency.setValueAtTime(340, ctx.currentTime);
@@ -546,7 +529,6 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
         } as any;
 
       } else if (soundType === "binaural") {
-        // Binaural delta wave delta beats (100Hz and 104Hz)
         const leftOsc = ctx.createOscillator();
         leftOsc.type = "sine";
         leftOsc.frequency.setValueAtTime(100, ctx.currentTime);
@@ -557,7 +539,7 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
 
         const subOsc = ctx.createOscillator();
         subOsc.type = "sine";
-        subOsc.frequency.setValueAtTime(50, ctx.currentTime); // deep bass base
+        subOsc.frequency.setValueAtTime(50, ctx.currentTime);
 
         const leftDrone = ctx.createOscillator();
         leftDrone.type = "sine";
@@ -681,7 +663,6 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
     if (isPlaying) {
       startSound(soundType);
     } else {
-      // Auto-play when user manually switches sound type
       const success = initAudio();
       if (success) {
         setIsPlaying(true);
@@ -695,13 +676,11 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
     const ctx = audioCtxRef.current;
     if (!ctx) return;
 
-    // Create a beautiful, rich Tibetan bowl chime on call
     const now = ctx.currentTime;
-    const frequencies = [144, 288, 432, 576, 720, 864]; // Pure resonance
+    const frequencies = [144, 288, 432, 576, 720, 864];
     const bowlGain = ctx.createGain();
     bowlGain.connect(mainGainRef.current || ctx.destination);
     
-    // Smooth attack and long decay
     bowlGain.gain.setValueAtTime(0, now);
     bowlGain.gain.linearRampToValueAtTime(0.3, now + 0.5);
     bowlGain.gain.exponentialRampToValueAtTime(0.0001, now + 8.0);
@@ -709,11 +688,9 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
     frequencies.forEach((freq, idx) => {
       const osc = ctx.createOscillator();
       osc.type = "sine";
-      // Natural harmonic detuning
       osc.frequency.setValueAtTime(freq + (idx * 0.4), now);
       
       const vGain = ctx.createGain();
-      // Lower volume for higher harmonics
       vGain.gain.setValueAtTime((0.3 / (idx + 1)), now);
       
       osc.connect(vGain);
@@ -724,21 +701,32 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
     });
   };
 
+  const soundList: { id: string; icon: any }[] = [
+    { id: "silence", icon: VolumeX },
+    { id: "rain", icon: CloudRain },
+    { id: "waves", icon: Waves },
+    { id: "wind", icon: Wind },
+    { id: "night", icon: Sparkles },
+    { id: "forest", icon: Trees },
+    { id: "fire", icon: Flame },
+    { id: "stream", icon: Droplet },
+    { id: "binaural", icon: Activity },
+  ];
+
   return (
     <div id="ambient-audio-panel" className="bg-white border border-neutral-900 rounded-lg p-5 shadow-sm text-neutral-900 font-mono transition-all">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-bold tracking-wider uppercase">Sons da Casa</h3>
-          <p className="text-xs text-neutral-500 mt-1">Sintetizador Web Audio nativo</p>
+          <h3 className="text-sm font-bold tracking-wider uppercase">{t("audio.title")}</h3>
+          <p className="text-xs text-neutral-500 mt-1">{t("audio.subtitle")}</p>
         </div>
         <button
           id="btn-play-bowl"
           onClick={playSingingBowl}
           className="px-3 py-1.5 border border-neutral-900 rounded text-xs hover:bg-neutral-900 hover:text-white transition duration-200 flex items-center gap-1.5 active:translate-y-[1px]"
-          title="Tocar Sino Tibetano"
         >
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Sino</span>
+          <span>{t("audio.bell")}</span>
         </button>
       </div>
 
@@ -755,7 +743,7 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
 
         <div className="flex-1 flex flex-col gap-1">
           <div className="flex justify-between text-[11px] text-neutral-400">
-            <span>Volume</span>
+            <span>{t("audio.volume")}</span>
             <span>{Math.round(volume * 100)}%</span>
           </div>
           <div className="flex items-center gap-2">
@@ -776,17 +764,7 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
       </div>
 
       <div className="grid grid-cols-3 gap-1.5">
-        {[
-          { id: "silence", label: "Silêncio", icon: VolumeX },
-          { id: "rain", label: "Chuva", icon: CloudRain },
-          { id: "waves", label: "Oceano", icon: Waves },
-          { id: "wind", label: "Vento", icon: Wind },
-          { id: "night", label: "Templo", icon: Sparkles },
-          { id: "forest", label: "Floresta", icon: Trees },
-          { id: "fire", label: "Lareira", icon: Flame },
-          { id: "stream", label: "Riacho", icon: Droplet },
-          { id: "binaural", label: "Binaural", icon: Activity }
-        ].map((sound) => {
+        {soundList.map((sound) => {
           const Icon = sound.icon;
           return (
             <button
@@ -800,7 +778,7 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
               }`}
             >
               <Icon className="w-4 h-4 mb-1" />
-              <span>{sound.label}</span>
+              <span>{soundLabels[sound.id]}</span>
             </button>
           );
         })}
@@ -809,7 +787,7 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
       {autoplayBlocked && (
         <div className="mt-3 flex items-start gap-2 bg-neutral-50 p-2 rounded border border-neutral-200 text-[11px] text-neutral-600">
           <AlertCircle className="w-4 h-4 text-neutral-900 shrink-0 mt-0.5" />
-          <span>Ative o som clicando no botão principal acima para permitir a reprodução no navegador.</span>
+          <span>{t("audio.autoplayBlocked")}</span>
         </div>
       )}
 
@@ -821,7 +799,7 @@ export default function AudioPlayer({ activeSound }: AudioPlayerProps) {
             <span className="w-[2px] bg-neutral-900 animate-pulse h-5/6 rounded delay-150"></span>
             <span className="w-[2px] bg-neutral-900 animate-pulse h-1/2 rounded delay-200"></span>
           </div>
-          <span className="text-[10px] text-neutral-500 italic">Sintonizando som ambiente...</span>
+          <span className="text-[10px] text-neutral-500 italic">{t("audio.tuning")}</span>
         </div>
       )}
     </div>
