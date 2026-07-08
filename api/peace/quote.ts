@@ -99,8 +99,18 @@ const fallbackQuotes: Record<string, string[]> = {
   ]
 };
 
+const LANGUAGE_NAMES: Record<string, string> = {
+  pt: "portuguese",
+  en: "english",
+  es: "spanish",
+  fr: "french",
+  ar: "arabic",
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const room = (req.query.room as string) || "living";
+  const lang = (req.query.lang as string) || "pt";
+  const langName = LANGUAGE_NAMES[lang] || "portuguese";
   const normalizedRoom = fallbackQuotes[room] ? room : "living";
 
   if (!ai) {
@@ -121,12 +131,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const targetRoom = roomNamesPt[normalizedRoom] || "Espaço da Alma";
 
     const response = await generateContentWithFallback({
-      contents: `Escreva uma única frase poética, extremamente relaxante, profunda e inspiradora em português sobre paz interior e presença, baseada no ambiente de uma casa chamado "${targetRoom}".
-      Regras estritas:
-      - Responda APENAS com a frase.
-      - Não use aspas, parênteses ou introduções.
-      - Use um tom calmo, acolhedor e minimalista (filosofia Zen, budista ou de mindfulness).
-      - Mantenha curto (no máximo 25 palavras).`,
+      contents: `Write a single poetic, extremely relaxing, deep and inspiring sentence in ${langName} about inner peace and presence, based on the atmosphere of a house room called "${targetRoom}" (translate the room's spirit into ${langName}, don't just describe it literally).
+      Strict rules:
+      - Reply with ONLY the sentence, written in ${langName}.
+      - No quotes, parentheses, or introductions.
+      - Calm, welcoming, minimalist tone (Zen, Buddhist or mindfulness philosophy).
+      - Keep it short (max 25 words).`,
     });
 
     const quote = response.text?.trim() || fallbackQuotes[normalizedRoom][0];
