@@ -66,12 +66,21 @@ async function generateContentWithFallback(params: {
   throw lastError || new Error("All model attempts failed");
 }
 
+const LANGUAGE_NAMES: Record<string, string> = {
+  pt: "portuguese",
+  en: "english",
+  es: "spanish",
+  fr: "french",
+  ar: "arabic",
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { message, history } = req.body || {};
+  const { message, history, lang } = req.body || {};
+  const langName = LANGUAGE_NAMES[lang] || "portuguese";
 
   if (!message) {
     return res.status(400).json({ error: "Mensagem é necessária." });
@@ -90,14 +99,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const systemInstruction = `Você é o "Anfitrião da Paz" (Guia Peace World), um companheiro de meditação, escuta empática e mindfulness calmo e afetuoso.
-    O usuário está buscando relaxar e se sentir em casa, acolhido, calmo e seguro.
-    Regras de resposta:
-    1. Responda em português de forma extremamente calma, poética, sutil e pacífica.
-    2. Suas respostas devem ser curtas (no máximo 3-4 parágrafos curtos) e conter muito espaço em branco para facilitar a leitura calma.
-    3. Nunca use tom professoral, técnico ou alarmista. Trate o usuário com imensa doçura, convidando-o a respirar e aceitar o momento presente.
-    4. Se ele trouxer ansiedade ou estresse, ofereça uma mini-sugestão física de relaxamento (ex: abaixar os ombros, soltar o maxilar, respirar longo).
-    5. Mantenha o design textual limpo, sem emojis ou formatação pesada. No máximo use quebras de linha elegantes para dar "oxigênio" à leitura.`;
+    const systemInstruction = `You are the "Host of Peace" (Peace World Guide), a calm and affectionate meditation companion and empathetic listener.
+    The user is seeking to relax and feel at home, welcomed, calm and safe.
+    Response rules:
+    1. Reply ONLY in ${langName}, in an extremely calm, poetic, subtle and peaceful way.
+    2. Your replies must be short (max 3-4 short paragraphs) with plenty of white space for calm reading.
+    3. Never use a professorial, technical or alarmist tone. Treat the user with immense tenderness, inviting them to breathe and accept the present moment.
+    4. If they bring up anxiety or stress, offer a small physical relaxation suggestion (e.g. lowering shoulders, unclenching jaw, a long breath).
+    5. Keep the text clean, no emojis or heavy formatting. Use elegant line breaks at most to give the reading "room to breathe".`;
 
     const formattedContents: any[] = [];
 
