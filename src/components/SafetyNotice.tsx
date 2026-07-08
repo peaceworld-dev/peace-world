@@ -1,5 +1,6 @@
 import { useState, useEffect, ReactNode } from "react";
 import { HeartHandshake, Compass, X } from "lucide-react";
+import { useLanguage } from "../i18n/LanguageContext";
 
 const STORAGE_KEY = "peace_world_entry_accepted";
 
@@ -8,6 +9,7 @@ interface SafetyNoticeProps {
 }
 
 export default function SafetyNotice({ children }: SafetyNoticeProps) {
+  const { t } = useLanguage();
   const [status, setStatus] = useState<"pending" | "accepted" | "declined">("pending");
   const [showInfoPanel, setShowInfoPanel] = useState(false);
 
@@ -27,7 +29,6 @@ export default function SafetyNotice({ children }: SafetyNoticeProps) {
     setStatus("declined");
   };
 
-  // Gate screen: first-time welcome + gentle notice, with a real choice
   if (status === "pending") {
     return (
       <div className="fixed inset-0 z-[100] bg-neutral-950 flex items-center justify-center p-4 font-mono overflow-y-auto">
@@ -38,26 +39,13 @@ export default function SafetyNotice({ children }: SafetyNoticeProps) {
             </div>
           </div>
 
-          <h1 className="text-center text-lg font-bold tracking-widest uppercase mb-2">Bem-vindo(a) à Peace World</h1>
-          <p className="text-center text-xs text-neutral-400 mb-8 tracking-wider">um lugar para respirar, esteja você onde estiver</p>
+          <h1 className="text-center text-lg font-bold tracking-widest uppercase mb-2">{t("safety.welcomeTitle")}</h1>
+          <p className="text-center text-xs text-neutral-400 mb-8 tracking-wider">{t("safety.welcomeSubtitle")}</p>
 
           <div className="text-xs text-neutral-300 leading-relaxed space-y-4 mb-8 bg-neutral-900/50 border border-neutral-800 rounded-lg p-5">
-            <p>
-              Esta casa foi feita para te dar um espaço de calma: respirar, ouvir sons que
-              acalmam, escrever o que pesa e conversar com um guia gentil. Fique à vontade
-              para explorar no seu próprio ritmo.
-            </p>
-            <p>
-              É importante seres honesto(a) contigo: a Peace World é um espaço de bem-estar,
-              não é terapia nem substitui o acompanhamento de um profissional de saúde
-              mental. Se estiveres a atravessar algo mais profundo ou difícil de carregar
-              sozinho(a), o passo mais corajoso é procurar um psicólogo, médico ou linha de
-              apoio da tua região — onde quer que estejas no mundo.
-            </p>
-            <p className="text-neutral-400">
-              E se hoje não for o dia certo para entrar, tudo bem. A porta fica aberta para
-              quando sentires vontade.
-            </p>
+            <p>{t("safety.para1")}</p>
+            <p>{t("safety.para2")}</p>
+            <p className="text-neutral-400">{t("safety.para3")}</p>
           </div>
 
           <div className="flex flex-col gap-2.5">
@@ -66,14 +54,14 @@ export default function SafetyNotice({ children }: SafetyNoticeProps) {
               onClick={handleAccept}
               className="w-full py-3 bg-white text-neutral-950 rounded text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition"
             >
-              Entrar e sentir-me em casa
+              {t("safety.acceptBtn")}
             </button>
             <button
               id="btn-decline-entry"
               onClick={handleDecline}
               className="w-full py-3 bg-transparent border border-neutral-800 text-neutral-400 rounded text-xs uppercase tracking-wider hover:border-neutral-600 hover:text-neutral-200 transition"
             >
-              Ainda não, talvez mais tarde
+              {t("safety.declineBtn")}
             </button>
           </div>
         </div>
@@ -81,29 +69,24 @@ export default function SafetyNotice({ children }: SafetyNoticeProps) {
     );
   }
 
-  // Decline screen: warm, no pressure, easy way back
   if (status === "declined") {
     return (
       <div className="fixed inset-0 z-[100] bg-neutral-950 flex items-center justify-center p-4 font-mono">
         <div className="max-w-sm w-full text-center text-white">
           <Compass className="w-8 h-8 mx-auto mb-4 text-neutral-500" />
-          <p className="text-sm text-neutral-300 leading-relaxed mb-6">
-            Sem problema nenhum. A Peace World vai continuar aqui, em silêncio,
-            à espera de quando quiseres voltar.
-          </p>
+          <p className="text-sm text-neutral-300 leading-relaxed mb-6">{t("safety.declineMessage")}</p>
           <button
             id="btn-reconsider-entry"
             onClick={() => setStatus("pending")}
             className="text-xs text-neutral-500 hover:text-white underline underline-offset-4 transition"
           >
-            Na verdade, quero entrar agora
+            {t("safety.reconsider")}
           </button>
         </div>
       </div>
     );
   }
 
-  // Accepted: render the app, plus a small always-available reminder
   return (
     <>
       {children}
@@ -115,7 +98,7 @@ export default function SafetyNotice({ children }: SafetyNoticeProps) {
           className="max-w-2xl mx-auto flex items-center justify-center gap-1.5 text-[10px] text-neutral-500 hover:text-neutral-300 transition w-full"
         >
           <HeartHandshake className="w-3 h-3 shrink-0" />
-          <span>Este espaço não substitui apoio psicológico profissional — saiba mais</span>
+          <span>{t("safety.footerNote")}</span>
         </button>
       </div>
 
@@ -132,21 +115,12 @@ export default function SafetyNotice({ children }: SafetyNoticeProps) {
 
             <div className="flex items-center gap-2 mb-4">
               <HeartHandshake className="w-5 h-5 text-neutral-900 shrink-0" />
-              <h2 className="text-sm font-bold uppercase tracking-wider">Um lembrete gentil</h2>
+              <h2 className="text-sm font-bold uppercase tracking-wider">{t("safety.modalTitle")}</h2>
             </div>
 
             <div className="text-xs text-neutral-700 leading-relaxed space-y-3">
-              <p>
-                A Peace World é uma ferramenta de bem-estar e relaxamento. Não é um serviço
-                clínico, não diagnostica nem trata condições de saúde mental.
-              </p>
-              <p>
-                Se sentires que precisas de mais do que um momento de calma — se a angústia
-                for persistente, intensa, ou vier acompanhada de pensamentos de te
-                magoares — procura, com urgência, um psicólogo, psiquiatra, ou o serviço de
-                emergência da tua região. Onde quer que estejas no mundo, esse apoio existe
-                e mereces recebê-lo.
-              </p>
+              <p>{t("safety.modalPara1")}</p>
+              <p>{t("safety.modalPara2")}</p>
             </div>
           </div>
         </div>
