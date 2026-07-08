@@ -101,6 +101,18 @@ function AppContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeRoomId, language]);
 
+  // Keep the welcome message in sync with the chosen language, as long as
+  // the person hasn't started chatting yet (don't touch real conversation history)
+  useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length === 1 && prev[0].id === "welcome") {
+        return [{ ...prev[0], text: t("chat.welcome") }];
+      }
+      return prev;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language]);
+
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
